@@ -18,6 +18,8 @@ fun SudokuGrid(
     board: List<List<SudokuCell>>,
     selectedRow: Int,
     selectedCol: Int,
+    selectedNumber: Int,
+    conflictCells: Set<Pair<Int, Int>>,
     isDarkTheme: Boolean,
     onCellClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
@@ -25,6 +27,14 @@ fun SudokuGrid(
     val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
     val thickDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
     val outerBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+
+    // Precompute which rows and columns contain the selected number for cross-highlight
+    val rowsWithNumber = if (selectedNumber != 0)
+        (0..8).filter { r -> board.getOrNull(r)?.any { it.value == selectedNumber } == true }.toSet()
+    else emptySet()
+    val colsWithNumber = if (selectedNumber != 0)
+        (0..8).filter { c -> board.any { it.getOrNull(c)?.value == selectedNumber } }.toSet()
+    else emptySet()
 
     Box(
         modifier = modifier
@@ -54,11 +64,18 @@ fun SudokuGrid(
                                 c == selectedCol ||
                                 (r / 3 == selectedRow / 3 && c / 3 == selectedCol / 3)
                             )
+                            val isSameNumber = selectedNumber != 0 && cell.value == selectedNumber && !isSelected
+                            val isSameNumberCross = selectedNumber != 0 && !isSameNumber && !isSelected && !isRelated &&
+                                (r in rowsWithNumber || c in colsWithNumber)
+                            val isConflict = (r to c) in conflictCells
 
                             SudokuCellComposable(
                                 cell = cell,
                                 isSelected = isSelected,
                                 isRelated = isRelated,
+                                isSameNumber = isSameNumber,
+                                isSameNumberCross = isSameNumberCross,
+                                isConflict = isConflict,
                                 isDarkTheme = isDarkTheme,
                                 onClick = { onCellClick(r, c) },
                                 modifier = Modifier.weight(1f)

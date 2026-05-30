@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,9 +22,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GameControls(
     isPencilMode: Boolean,
+    isInstantFillMode: Boolean,
     onUndoClick: () -> Unit,
     onPencilToggle: () -> Unit,
     onHintClick: () -> Unit,
+    onInstantFillToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -47,6 +50,13 @@ fun GameControls(
         )
 
         ControlItem(
+            icon = Icons.Default.FlashOn,
+            label = "Fill",
+            isActive = isInstantFillMode,
+            onClick = onInstantFillToggle
+        )
+
+        ControlItem(
             icon = Icons.Default.Lightbulb,
             label = "Hint",
             onClick = onHintClick
@@ -67,7 +77,7 @@ fun ControlItem(
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
     }
-    
+
     val contentColor = if (isActive) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -80,7 +90,7 @@ fun ControlItem(
             .clip(RoundedCornerShape(16.dp))
             .background(containerColor)
             .clickable { onClick() }
-            .padding(vertical = 12.dp, horizontal = 24.dp)
+            .padding(vertical = 12.dp, horizontal = 20.dp)
     ) {
         Icon(
             imageVector = icon,

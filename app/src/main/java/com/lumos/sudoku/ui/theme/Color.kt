@@ -30,3 +30,12 @@ val RelatedCellBgDark = Color(0xFF1F2B3A)
 
 val HintedCellBgLight = Color(0xFFE2F0D9)
 val HintedCellBgDark = Color(0xFF263A29)
+
+val SameNumberBgLight = Color(0xFFFFECB3)
+val SameNumberBgDark = Color(0xFF4D3800)
+
+val SameNumberCrossBgLight = Color(0xFFFFF8E1)
+val SameNumberCrossBgDark = Color(0xFF2E2200)
+
+val ConflictCellBgLight = Color(0xFFFFCDD2)
+val ConflictCellBgDark = Color(0xFF4D0000)

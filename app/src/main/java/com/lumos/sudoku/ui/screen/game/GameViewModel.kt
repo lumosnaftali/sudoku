@@ -33,7 +33,11 @@ data class GameUiState(
     val hintsUsed: Int = 0,
     val gameState: GameState = GameState.Idle,
     val difficulty: Difficulty = Difficulty.EASY,
-    val elapsedSeconds: Long = 0
+    val elapsedSeconds: Long = 0,
+    val selectedNumber: Int = 0,
+    val isInstantFillMode: Boolean = false,
+    val conflictCells: Set<Pair<Int, Int>> = emptySet(),
+    val numberRemainingCounts: List<Int> = List(9) { 9 }
 )
 
 @HiltViewModel
@@ -57,11 +61,12 @@ class GameViewModel @Inject constructor(
 
     private val undoStack = Stack<List<List<SudokuCell>>>()
     private var timerJob: Job? = null
+    private var conflictFlashJob: Job? = null
 
     fun initGame(difficulty: Difficulty) {
         val newBoard = generatePuzzleUseCase(difficulty)
         undoStack.clear()
-        
+
         _uiState.value = GameUiState(
             board = newBoard,
             selectedRow = -1,
@@ -71,9 +76,13 @@ class GameViewModel @Inject constructor(
             hintsUsed = 0,
             gameState = GameState.Playing,
             difficulty = difficulty,
-            elapsedSeconds = 0
+            elapsedSeconds = 0,
+            selectedNumber = 0,
+            isInstantFillMode = false,
+            conflictCells = emptySet(),
+            numberRemainingCounts = computeRemainingCounts(newBoard)
         )
-        
+
         startTimer()
     }
 
@@ -93,37 +102,42 @@ class GameViewModel @Inject constructor(
 
     fun selectCell(row: Int, col: Int) {
         if (_uiState.value.gameState != GameState.Playing) return
-        _uiState.update {
-            it.copy(selectedRow = row, selectedCol = col)
+        val state = _uiState.value
+        if (state.isInstantFillMode && state.selectedNumber != 0) {
+            _uiState.update { it.copy(selectedRow = row, selectedCol = col) }
+            enterNumber(state.selectedNumber)
+        } else {
+            val cellValue = state.board[row][col].value
+            _uiState.update { it.copy(selectedRow = row, selectedCol = col, selectedNumber = cellValue) }
         }
     }
 
     fun enterNumber(num: Int) {
         val currentState = _uiState.value
         if (currentState.gameState != GameState.Playing) return
-        
+
         val r = currentState.selectedRow
         val c = currentState.selectedCol
         if (r !in 0..8 || c !in 0..8) return
 
         val cell = currentState.board[r][c]
         if (cell.isGiven || cell.isHinted) return
-        if (cell.value == num && cell.notes.isEmpty()) return
-
-        // Push copy to undo stack
-        pushToUndoStack(currentState.board)
+        if (cell.value != 0 && !cell.isWrong) return  // Feature 1: lock correctly filled cells
 
         if (currentState.isPencilMode) {
-            // Pencil/Notes Mode: toggle note
-            val newNotes = if (cell.notes.contains(num)) {
-                cell.notes - num
-            } else {
-                cell.notes + num
-            }
+            val newNotes = if (cell.notes.contains(num)) cell.notes - num else cell.notes + num
             val updatedCell = cell.copy(notes = newNotes, value = 0, isWrong = false)
+            pushToUndoStack(currentState.board)
             updateCellInBoard(r, c, updatedCell)
         } else {
-            // Normal Mode: enter confirmed value
+            // Feature 3: block Sudoku constraint violations
+            val conflicts = findConflicts(currentState.board, r, c, num)
+            if (conflicts.isNotEmpty()) {
+                flashConflictCells(conflicts)
+                return
+            }
+
+            pushToUndoStack(currentState.board)
             val validatedCell = validateMoveUseCase(cell, num)
             updateCellInBoard(r, c, validatedCell)
 
@@ -135,7 +149,6 @@ class GameViewModel @Inject constructor(
                     stopTimer()
                 }
             } else {
-                // Check if puzzle is complete and correct
                 val isComplete = checkCompletionUseCase(_uiState.value.board)
                 if (isComplete) {
                     _uiState.update { it.copy(gameState = GameState.Won) }
@@ -155,17 +168,43 @@ class GameViewModel @Inject constructor(
 
         val cell = currentState.board[r][c]
         if (cell.isGiven || cell.isHinted) return
+        if (cell.value != 0 && !cell.isWrong) return  // Feature 1: lock correctly filled cells
         if (cell.value == 0 && cell.notes.isEmpty()) return
 
         pushToUndoStack(currentState.board)
-
         val updatedCell = cell.copy(value = 0, isWrong = false, notes = emptySet())
         updateCellInBoard(r, c, updatedCell)
     }
 
     fun togglePencilMode() {
         if (_uiState.value.gameState != GameState.Playing) return
-        _uiState.update { it.copy(isPencilMode = !it.isPencilMode) }
+        val turningOn = !_uiState.value.isPencilMode
+        _uiState.update {
+            it.copy(
+                isPencilMode = turningOn,
+                isInstantFillMode = if (turningOn) false else it.isInstantFillMode,
+                selectedNumber = if (turningOn) 0 else it.selectedNumber
+            )
+        }
+    }
+
+    fun toggleInstantFillMode() {
+        if (_uiState.value.gameState != GameState.Playing) return
+        val turningOn = !_uiState.value.isInstantFillMode
+        _uiState.update {
+            it.copy(
+                isInstantFillMode = turningOn,
+                isPencilMode = if (turningOn) false else it.isPencilMode,
+                selectedNumber = if (!turningOn) 0 else it.selectedNumber
+            )
+        }
+    }
+
+    fun setSelectedNumber(num: Int) {
+        if (_uiState.value.gameState != GameState.Playing) return
+        val remaining = _uiState.value.numberRemainingCounts.getOrElse(num - 1) { 0 }
+        if (remaining <= 0) return
+        _uiState.update { it.copy(selectedNumber = num) }
     }
 
     fun useHint() {
@@ -197,7 +236,17 @@ class GameViewModel @Inject constructor(
         if (_uiState.value.gameState != GameState.Playing) return
         if (undoStack.isNotEmpty()) {
             val previousBoard = undoStack.pop()
-            _uiState.update { it.copy(board = previousBoard) }
+            val state = _uiState.value
+            val selectedNumber = if (state.selectedRow in 0..8 && state.selectedCol in 0..8) {
+                previousBoard[state.selectedRow][state.selectedCol].value
+            } else 0
+            _uiState.update {
+                it.copy(
+                    board = previousBoard,
+                    numberRemainingCounts = computeRemainingCounts(previousBoard),
+                    selectedNumber = selectedNumber
+                )
+            }
         }
     }
 
@@ -205,6 +254,44 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             themePreferencesRepository.saveThemePreference(isDark)
         }
+    }
+
+    private fun findConflicts(
+        board: List<List<SudokuCell>>,
+        row: Int,
+        col: Int,
+        num: Int
+    ): Set<Pair<Int, Int>> {
+        val conflicts = mutableSetOf<Pair<Int, Int>>()
+        for (c in 0..8) {
+            if (c != col && board[row][c].value == num) conflicts.add(row to c)
+        }
+        for (r in 0..8) {
+            if (r != row && board[r][col].value == num) conflicts.add(r to col)
+        }
+        val boxRow = (row / 3) * 3
+        val boxCol = (col / 3) * 3
+        for (r in boxRow until boxRow + 3) {
+            for (c in boxCol until boxCol + 3) {
+                if ((r != row || c != col) && board[r][c].value == num) conflicts.add(r to c)
+            }
+        }
+        return conflicts
+    }
+
+    private fun flashConflictCells(conflicts: Set<Pair<Int, Int>>) {
+        conflictFlashJob?.cancel()
+        _uiState.update { it.copy(conflictCells = conflicts) }
+        conflictFlashJob = viewModelScope.launch {
+            delay(600)
+            _uiState.update { it.copy(conflictCells = emptySet()) }
+        }
+    }
+
+    private fun computeRemainingCounts(board: List<List<SudokuCell>>): List<Int> {
+        val placed = IntArray(9)
+        for (row in board) for (cell in row) if (cell.value in 1..9) placed[cell.value - 1]++
+        return List(9) { i -> 9 - placed[i] }
     }
 
     private fun pushToUndoStack(board: List<List<SudokuCell>>) {
@@ -223,12 +310,13 @@ class GameViewModel @Inject constructor(
                     rList
                 }
             }
-            state.copy(board = newBoard)
+            state.copy(board = newBoard, numberRemainingCounts = computeRemainingCounts(newBoard))
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         stopTimer()
+        conflictFlashJob?.cancel()
     }
 }

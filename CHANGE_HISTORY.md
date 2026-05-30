@@ -2,6 +2,75 @@
 
 ---
 
+## 2026-05-30 (AGENTS.md Compaction)
+
+### Compacted from AGENTS.md
+Moved the following sections to CHANGE_HISTORY.md to bring AGENTS.md under 150 lines:
+- Issue #1–#6 verbose history blocks
+- Full "Implementation Plan (Ordered)" section (14 steps)
+- "Implementation Review" table
+- Verbose Features section (condensed to a table in AGENTS.md)
+- Old `GameUiState` definition (replaced with updated version reflecting Issue #6 fields)
+
+### Archived: Implementation Plan (Issue #1 Ordered Steps)
+1. Project setup — Gradle deps, Hilt, Compose, Material3, Navigation ✅
+2. Data models — SudokuCell, SudokuBoard, Difficulty, GameState ✅
+3. Puzzle generator — backtracking + uniqueness checker ✅ (bug fixed Issue #5)
+4. Repository & use cases ✅
+5. Theme — Material3 light/dark, color tokens ✅
+6. HomeScreen + HomeViewModel ✅
+7. GameViewModel — full game logic, undo stack, mistake counter, pencil mode, hints ✅
+8. SudokuGrid + SudokuCell composables — cell states, pencil mini-grid ✅
+9. NumberPad + GameControls composables ✅
+10. GameScreen layout ✅
+11. ResultScreen ✅
+12. Navigation — Home → Game → Result ✅
+13. Theme persistence — DataStore for dark/light preference ✅
+14. Polish — animations, accessibility content descriptions ⏳
+
+### Archived: Completed Issues Summary
+- **#1** Initial Application Plan: full MVVM Sudoku implementation
+- **#2** IndexOutOfBoundsException on SudokuGrid: safety check + progress indicator
+- **#3** Hilt kotlinx-metadata-jvm incompatibility: upgraded to Hilt 2.59.2
+- **#4** Hilt @AndroidEntryPoint missing value (kapt): migrated to KSP
+- **#5** SudokuGenerator.countSolutions terminal condition: changed `if (nextRow == 9)` to `if (r == 9)` guard at top of recursive function
+- **#6** UX Improvements (lock cells, same-number highlight, conflict flash, instant fill, number counters)
+
+---
+
+## 2026-05-30 (Issue #6 — UX Improvements)
+
+### Feature 1: Lock Correctly Filled Cells
+- `GameViewModel.enterNumber()` — added guard: `if (cell.value != 0 && !cell.isWrong) return`
+- `GameViewModel.eraseSelected()` — same guard added; only Undo can revert a correctly placed digit
+
+### Feature 2: Same-Number Highlighting
+- `Color.kt` — added `SameNumberBgLight/Dark` (amber-100/dark amber) and `SameNumberCrossBgLight/Dark` (very faint amber)
+- `GameUiState` — new `selectedNumber: Int` field; updated in `selectCell()` and `setSelectedNumber()`
+- `SudokuGrid.kt` — precomputes `rowsWithNumber` and `colsWithNumber` before cell loop; passes `isSameNumber` and `isSameNumberCross` booleans to each cell
+- `SudokuCellComposable` — new params `isSameNumber`, `isSameNumberCross`; expanded background priority
+
+### Feature 3: Conflict Detection + Flash
+- `Color.kt` — added `ConflictCellBgLight/Dark` (red-100/dark red)
+- `GameViewModel` — `findConflicts()` helper; `flashConflictCells()` sets `conflictCells` in state and clears it after 600ms via a cancellable coroutine job
+- `GameUiState` — new `conflictCells: Set<Pair<Int,Int>>`
+- `SudokuGrid.kt` — receives `conflictCells`, computes `isConflict` per cell
+- `SudokuCellComposable` — new `isConflict` param; flashes red when set
+
+### Feature 4: Instant Fill Mode
+- `GameUiState` — new `isInstantFillMode: Boolean`
+- `GameViewModel` — `toggleInstantFillMode()` (mutually exclusive with pencil mode); `setSelectedNumber()` for number-first selection; `selectCell()` routes to `enterNumber()` when mode is active
+- `GameControls.kt` — fourth `ControlItem` ("Fill" with `FlashOn` icon); horizontal padding reduced to `20.dp` to accommodate 4 items
+- `GameScreen.kt` — `onNumberClick` routes to `setSelectedNumber()` or `enterNumber()` based on mode
+
+### Feature 5: Number Counters + Auto-Disable
+- `GameUiState` — new `numberRemainingCounts: List<Int>` (index 0 = digit 1)
+- `GameViewModel` — `computeRemainingCounts()` called in `updateCellInBoard()`, `initGame()`, and `undo()`
+- `NumberPad.kt` — `NumberButton` gains `remaining` and `isActive` params; counter text below digit; dimmed at alpha 0.35 when exhausted; active border highlight (2dp primary)
+- `GameScreen.kt` — passes `selectedNumber` and `numberRemainingCounts` to `NumberPad`
+
+---
+
 ## 2026-05-30 (Review & Bug Fix)
 
 ### Bug Fix — Issue #5: SudokuGenerator.countSolutions terminal condition

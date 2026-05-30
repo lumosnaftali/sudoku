@@ -147,6 +147,8 @@ fun GameScreen(
                 board = uiState.board,
                 selectedRow = uiState.selectedRow,
                 selectedCol = uiState.selectedCol,
+                selectedNumber = uiState.selectedNumber,
+                conflictCells = uiState.conflictCells,
                 isDarkTheme = isDark,
                 onCellClick = { r, c -> viewModel.selectCell(r, c) },
                 modifier = Modifier.weight(1f, fill = false)
@@ -156,18 +158,25 @@ fun GameScreen(
 
             GameControls(
                 isPencilMode = uiState.isPencilMode,
+                isInstantFillMode = uiState.isInstantFillMode,
                 onUndoClick = { viewModel.undo() },
                 onPencilToggle = { viewModel.togglePencilMode() },
-                onHintClick = { viewModel.useHint() }
+                onHintClick = { viewModel.useHint() },
+                onInstantFillToggle = { viewModel.toggleInstantFillMode() }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             NumberPad(
-                onNumberClick = { num -> viewModel.enterNumber(num) },
-                onEraseClick = { viewModel.eraseSelected() }
+                onNumberClick = { num ->
+                    if (uiState.isInstantFillMode) viewModel.setSelectedNumber(num)
+                    else viewModel.enterNumber(num)
+                },
+                onEraseClick = { viewModel.eraseSelected() },
+                selectedNumber = uiState.selectedNumber,
+                numberRemainingCounts = uiState.numberRemainingCounts
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
         }
     }

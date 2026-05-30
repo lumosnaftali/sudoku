@@ -22,6 +22,9 @@ fun SudokuCellComposable(
     cell: SudokuCell,
     isSelected: Boolean,
     isRelated: Boolean,
+    isSameNumber: Boolean,
+    isSameNumberCross: Boolean,
+    isConflict: Boolean,
     isDarkTheme: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -30,6 +33,9 @@ fun SudokuCellComposable(
         isSelected -> if (isDarkTheme) SelectedCellBgDark else SelectedCellBgLight
         isRelated -> if (isDarkTheme) RelatedCellBgDark else RelatedCellBgLight
         cell.isHinted -> if (isDarkTheme) HintedCellBgDark else HintedCellBgLight
+        isSameNumber -> if (isDarkTheme) SameNumberBgDark else SameNumberBgLight
+        isSameNumberCross -> if (isDarkTheme) SameNumberCrossBgDark else SameNumberCrossBgLight
+        isConflict -> if (isDarkTheme) ConflictCellBgDark else ConflictCellBgLight
         else -> MaterialTheme.colorScheme.surface
     }
 

@@ -1,6 +1,7 @@
 package com.lumos.sudoku.ui.screen.game.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,6 +21,8 @@ import androidx.compose.ui.unit.sp
 fun NumberPad(
     onNumberClick: (Int) -> Unit,
     onEraseClick: () -> Unit,
+    selectedNumber: Int = 0,
+    numberRemainingCounts: List<Int> = List(9) { 9 },
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -32,9 +36,12 @@ fun NumberPad(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             for (num in 1..5) {
+                val remaining = numberRemainingCounts.getOrElse(num - 1) { 0 }
                 NumberButton(
                     number = num,
-                    onClick = { onNumberClick(num) },
+                    remaining = remaining,
+                    isActive = num == selectedNumber,
+                    onClick = { if (remaining > 0) onNumberClick(num) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -45,9 +52,12 @@ fun NumberPad(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             for (num in 6..9) {
+                val remaining = numberRemainingCounts.getOrElse(num - 1) { 0 }
                 NumberButton(
                     number = num,
-                    onClick = { onNumberClick(num) },
+                    remaining = remaining,
+                    isActive = num == selectedNumber,
+                    onClick = { if (remaining > 0) onNumberClick(num) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -63,25 +73,57 @@ fun NumberPad(
 @Composable
 fun NumberButton(
     number: Int,
+    remaining: Int,
+    isActive: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isExhausted = remaining <= 0
+    val bgColor = if (isExhausted) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+    }
+    val textColor = if (isExhausted) {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
+    val borderModifier = if (isActive && !isExhausted) {
+        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+    } else {
+        Modifier
+    }
+
     Box(
         modifier = modifier
+            .alpha(if (isExhausted) 0.35f else 1f)
+            .then(borderModifier)
             .aspectRatio(1.2f)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
-            .clickable { onClick() },
+            .background(bgColor)
+            .clickable(enabled = !isExhausted) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = number.toString(),
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
-            ),
-            color = MaterialTheme.colorScheme.primary
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = number.toString(),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp
+                ),
+                color = textColor
+            )
+            Text(
+                text = remaining.toString(),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+            )
+        }
     }
 }
 
