@@ -37,6 +37,18 @@
 
 ---
 
+## Issue #5 — SudokuGenerator.countSolutions Terminal Condition Bug
+
+**Status:** Completed
+**Created:** 2026-05-30
+**Completed:** 2026-05-30
+
+**Root cause:** `countSolutions` used "compute next, if next is out-of-bounds then count" logic. When called with `r=8, c=8`, the function calculated `nextRow=9` and immediately incremented `solutionsCount` **without** checking or filling cell `(8,8)`. If cell `(8,8)` was empty (removed), the solver would count one "solution" regardless of how many valid values `(8,8)` could hold, causing `removeCells` to always remove `(8,8)` even when the resulting puzzle is non-unique.
+
+**Fix:** Changed the terminal condition to `if (r == 9)` at the top of the recursive function. Solver now counts only when called with a row index past the board end (`r == 9`), meaning all 81 cells have been correctly placed before counting.
+
+---
+
 ## Overview
 
 A fully modern Android Sudoku game built with Kotlin, Jetpack Compose, Material3, and MVVM architecture. The board is a standard 9×9 grid. Players choose a difficulty, can take pencil notes, request hints, undo moves, and see mistakes highlighted in red.
@@ -270,5 +282,32 @@ data class GameUiState(
 - No network / backend required — fully offline
 
 ---
+
+---
+
+## Implementation Review (2026-05-30)
+
+### Plan Completion Status
+
+| Step | Description | Status |
+|---|---|---|
+| 1 | Project setup (Gradle, Hilt, Compose, Material3, Navigation) | ✅ Done |
+| 2 | Data models (SudokuCell, SudokuBoard, Difficulty, GameState) | ✅ Done |
+| 3 | Puzzle generator (backtracking + uniqueness checker) | ✅ Done (bug fixed in Issue #5) |
+| 4 | Repository & use cases | ✅ Done |
+| 5 | Theme (Material3 light/dark, color tokens) | ✅ Done |
+| 6 | HomeScreen + HomeViewModel | ✅ Done |
+| 7 | GameViewModel (game logic, undo stack, mistake counter, pencil mode, hints) | ✅ Done |
+| 8 | SudokuGrid + SudokuCell composables (cell states, pencil mini-grid) | ✅ Done |
+| 9 | NumberPad + GameControls composables | ✅ Done |
+| 10 | GameScreen layout | ✅ Done |
+| 11 | ResultScreen | ✅ Done |
+| 12 | Navigation (Home → Game → Result) | ✅ Done |
+| 13 | Theme persistence (DataStore) | ✅ Done |
+| 14 | Polish (animations, accessibility content descriptions) | ⏳ Not yet done |
+
+### Notes
+- `SudokuBoard.kt` is defined but not used by any other file — `SudokuRepository` returns `List<List<SudokuCell>>` directly. This is dead code but harmless.
+- GitHub repository has only Issue #1 (closed). Issues #2–#4 were tracked locally only.
 
 *Last updated: 2026-05-30 | See CHANGE_HISTORY.md for edit log*

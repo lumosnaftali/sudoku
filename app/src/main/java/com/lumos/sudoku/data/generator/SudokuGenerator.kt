@@ -65,26 +65,29 @@ class SudokuGenerator @Inject constructor() {
     private fun countSolutions(board: Array<IntArray>, limit: Int = 2): Int {
         var solutionsCount = 0
         val tempBoard = copyBoard(board)
-        
+
         fun solveRecursive(r: Int, c: Int): Boolean {
-            if (solutionsCount >= limit) return true
-            
-            var nextRow = r
-            var nextCol = c + 1
-            if (nextCol == 9) {
-                nextRow++
-                nextCol = 0
-            }
-            
-            if (nextRow == 9) {
+            if (r == 9) {
                 solutionsCount++
                 return solutionsCount >= limit
             }
-            
+
+            if (solutionsCount >= limit) return true
+
+            val nextRow: Int
+            val nextCol: Int
+            if (c + 1 == 9) {
+                nextRow = r + 1
+                nextCol = 0
+            } else {
+                nextRow = r
+                nextCol = c + 1
+            }
+
             if (tempBoard[r][c] != 0) {
                 return solveRecursive(nextRow, nextCol)
             }
-            
+
             for (num in 1..9) {
                 if (isValid(tempBoard, r, c, num)) {
                     tempBoard[r][c] = num
@@ -97,7 +100,7 @@ class SudokuGenerator @Inject constructor() {
             }
             return false
         }
-        
+
         solveRecursive(0, 0)
         return solutionsCount
     }

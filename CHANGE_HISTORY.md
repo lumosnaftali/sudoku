@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-05-30 (Review & Bug Fix)
+
+### Bug Fix — Issue #5: SudokuGenerator.countSolutions terminal condition
+- **File:** `app/src/main/java/com/lumos/sudoku/data/generator/SudokuGenerator.kt`
+- **Problem:** The recursive uniqueness solver used "if next position is row 9, count" logic. When cell (8,8) was removed from the puzzle, `solveRecursive(8,8)` triggered the terminal check immediately without filling or validating cell (8,8), always reporting 1 solution regardless of how many values were valid there. This allowed `removeCells` to remove (8,8) even when the puzzle had multiple solutions.
+- **Fix:** Changed the terminal condition to `if (r == 9)` at the start of the recursive function. The count is now incremented only when the solver is called with `r=9`, meaning all 81 cells were successfully placed before counting.
+
+### Implementation Review
+- All 13 of 14 plan steps verified complete.
+- Only Step 14 (polish: animations, accessibility content descriptions) remains pending.
+- Noted: `SudokuBoard.kt` is defined but unused — `SudokuRepository` returns `List<List<SudokuCell>>` directly.
+- GitHub repository has only Issue #1 (closed). All other issues were tracked locally in AGENTS.md.
+
+---
+
 ## 2026-05-30
 
 ### Initial project setup
