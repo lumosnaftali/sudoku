@@ -10,7 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import java.io.IOException
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "theme_prefs")
 
@@ -19,9 +18,7 @@ class ThemePreferencesRepository(private val context: Context) {
     private val isDarkThemeKey = booleanPreferencesKey("is_dark_theme")
 
     val isDarkThemeFlow: Flow<Boolean?> = context.dataStore.data
-        .catch { exception ->
-            if (exception is IOException) emit(emptyPreferences()) else throw exception
-        }
+        .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[isDarkThemeKey] }
 
     suspend fun saveThemePreference(isDark: Boolean) {
