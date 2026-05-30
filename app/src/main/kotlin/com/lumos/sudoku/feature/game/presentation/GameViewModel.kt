@@ -1,9 +1,16 @@
 package com.lumos.sudoku.feature.game.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.lumos.sudoku.SudokuApplication
 import com.lumos.sudoku.core.model.Difficulty
 import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
+import com.lumos.sudoku.feature.game.data.generator.SudokuGenerator
+import com.lumos.sudoku.feature.game.data.repository.SudokuRepositoryImpl
 import com.lumos.sudoku.feature.game.domain.model.GameState
 import com.lumos.sudoku.feature.game.domain.model.SudokuCell
 import com.lumos.sudoku.feature.game.domain.usecase.CheckCompletionUseCase
@@ -233,5 +240,21 @@ class GameViewModel(
         super.onCleared()
         stopTimer()
         conflictFlashJob?.cancel()
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = checkNotNull(this[APPLICATION_KEY]) as SudokuApplication
+                val repository = SudokuRepositoryImpl(SudokuGenerator())
+                GameViewModel(
+                    generatePuzzleUseCase = GeneratePuzzleUseCase(repository),
+                    validateMoveUseCase = ValidateMoveUseCase(),
+                    getHintUseCase = GetHintUseCase(),
+                    checkCompletionUseCase = CheckCompletionUseCase(),
+                    themePreferencesRepository = app.themeRepository
+                )
+            }
+        }
     }
 }

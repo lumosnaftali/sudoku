@@ -1,7 +1,12 @@
 package com.lumos.sudoku.feature.home.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.lumos.sudoku.SudokuApplication
 import com.lumos.sudoku.core.model.Difficulty
 import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +40,15 @@ class HomeViewModel(
     fun toggleTheme(isDark: Boolean) {
         viewModelScope.launch {
             themePreferencesRepository.saveThemePreference(isDark)
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = checkNotNull(this[APPLICATION_KEY]) as SudokuApplication
+                HomeViewModel(app.themeRepository)
+            }
         }
     }
 }
