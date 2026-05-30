@@ -1,0 +1,66 @@
+# Built application files
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Files for the ART/Dalvik VM
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+build/
+
+# Gradle files
+.gradle/
+gradle-wrapper.jar
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio / IntelliJ IDEA project files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/modules.xml
+.idea/caches
+.idea/navEditor.xml
+.idea/deploymentTargetDropDown.xml
+*.iml
+*.ipr
+*.iws
+
+# External native build
+.externalNativeBuild/
+.cxx/
+
+# Proguard / R8
+mapping.txt
+*.map
+
+# Kotlin specific
+*.kotlin_module
+
+# Captures folder
+captures/
+
+# Google services
+google-services.json
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editor specific
+*.swp
+*.swo
+*~
