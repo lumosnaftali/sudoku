@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.util.Stack
 
 class GameViewModel(
     private val generatePuzzleUseCase: GeneratePuzzleUseCase,
@@ -46,7 +45,7 @@ class GameViewModel(
             initialValue = null
         )
 
-    private val undoStack = Stack<List<List<SudokuCell>>>()
+    private val undoStack = ArrayDeque<List<List<SudokuCell>>>()
     private var timerJob: Job? = null
     private var conflictFlashJob: Job? = null
 
@@ -178,7 +177,7 @@ class GameViewModel(
     fun undo() {
         if (_uiState.value.gameState != GameState.Playing) return
         if (undoStack.isNotEmpty()) {
-            val previousBoard = undoStack.pop()
+            val previousBoard = undoStack.removeLast()
             val state = _uiState.value
             val selectedNumber = if (state.selectedRow in 0..8 && state.selectedCol in 0..8)
                 previousBoard[state.selectedRow][state.selectedCol].value else 0
@@ -222,7 +221,7 @@ class GameViewModel(
     }
 
     private fun pushToUndoStack(board: List<List<SudokuCell>>) {
-        undoStack.push(board.map { row -> row.map { it.copy() } })
+        undoStack.addLast(board.map { row -> row.map { it.copy() } })
     }
 
     private fun updateCellInBoard(row: Int, col: Int, newCell: SudokuCell) {
