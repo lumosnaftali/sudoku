@@ -21,6 +21,10 @@ gradle-wrapper.jar
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Release signing — never commit keystore or credentials
+keystore.properties
+app/keystore/
+
 # Android Studio / IntelliJ IDEA project files
 .idea/workspace.xml
 .idea/tasks.xml
