@@ -7,8 +7,33 @@
 
 ## Issue #1 — Initial Application Plan
 
-**Status:** Planning
+**Status:** Completed
 **Created:** 2026-05-30
+**Completed:** 2026-05-30
+
+---
+
+## Issue #2 — IndexOutOfBoundsException on SudokuGrid
+
+**Status:** Completed
+**Created:** 2026-05-30
+**Completed:** 2026-05-30
+
+---
+
+## Issue #3 — Dagger Hilt kotlinx-metadata-jvm Incompatibility with Kotlin 2.2.10
+
+**Status:** Completed
+**Created:** 2026-05-30
+**Completed:** 2026-05-30
+
+---
+
+## Issue #4 — Hilt @AndroidEntryPoint Missing Value Error (Kapt Compatibility)
+
+**Status:** Completed
+**Created:** 2026-05-30
+**Completed:** 2026-05-30
 
 ---
 

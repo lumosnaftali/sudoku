@@ -1,0 +1,11 @@
+package com.lumos.sudoku.di
+
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+    // Concrete classes annotated with @Inject and @Singleton are automatically provided by Hilt.
+}
