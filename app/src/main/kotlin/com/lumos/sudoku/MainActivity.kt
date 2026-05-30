@@ -11,16 +11,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
 import com.lumos.sudoku.core.navigation.AppNavigation
 import com.lumos.sudoku.core.theme.SudokuTheme
 
 class MainActivity : ComponentActivity() {
 
-    private val themeRepository
-        get() = (application as SudokuApplication).themeRepository
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val themeRepository = ThemePreferencesRepository(applicationContext)
+
         setContent {
             CompositionLocalProvider(LocalLifecycleOwner provides this@MainActivity) {
                 val isDarkThemePref by themeRepository.isDarkThemeFlow

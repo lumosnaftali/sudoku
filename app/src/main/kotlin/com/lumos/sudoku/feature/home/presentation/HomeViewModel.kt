@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.lumos.sudoku.SudokuApplication
 import com.lumos.sudoku.core.model.Difficulty
 import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,8 +45,8 @@ class HomeViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val app = checkNotNull(this[APPLICATION_KEY]) as SudokuApplication
-                HomeViewModel(app.themeRepository)
+                val app = checkNotNull(this[APPLICATION_KEY])
+                HomeViewModel(ThemePreferencesRepository(app))
             }
         }
     }

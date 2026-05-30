@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.lumos.sudoku.SudokuApplication
 import com.lumos.sudoku.core.model.Difficulty
 import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
 import com.lumos.sudoku.feature.game.data.generator.SudokuGenerator
@@ -245,14 +244,14 @@ class GameViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val app = checkNotNull(this[APPLICATION_KEY]) as SudokuApplication
+                val app = checkNotNull(this[APPLICATION_KEY])
                 val repository = SudokuRepositoryImpl(SudokuGenerator())
                 GameViewModel(
                     generatePuzzleUseCase = GeneratePuzzleUseCase(repository),
                     validateMoveUseCase = ValidateMoveUseCase(),
                     getHintUseCase = GetHintUseCase(),
                     checkCompletionUseCase = CheckCompletionUseCase(),
-                    themePreferencesRepository = app.themeRepository
+                    themePreferencesRepository = ThemePreferencesRepository(app)
                 )
             }
         }
