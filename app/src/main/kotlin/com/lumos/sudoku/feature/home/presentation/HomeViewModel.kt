@@ -1,0 +1,43 @@
+package com.lumos.sudoku.feature.home.presentation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.lumos.sudoku.core.model.Difficulty
+import com.lumos.sudoku.core.datastore.ThemePreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val themePreferencesRepository: ThemePreferencesRepository
+) : ViewModel() {
+
+    private val _selectedDifficulty = MutableStateFlow(Difficulty.EASY)
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        _selectedDifficulty,
+        themePreferencesRepository.isDarkThemeFlow
+    ) { difficulty, isDarkTheme ->
+        HomeUiState(selectedDifficulty = difficulty, isDarkTheme = isDarkTheme)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeUiState()
+    )
+
+    fun selectDifficulty(difficulty: Difficulty) {
+        _selectedDifficulty.value = difficulty
+    }
+
+    fun toggleTheme(isDark: Boolean) {
+        viewModelScope.launch {
+            themePreferencesRepository.saveThemePreference(isDark)
+        }
+    }
+}

@@ -130,29 +130,52 @@ Min SDK 26, Target SDK 35, Kotlin, Gradle Kotlin DSL.
 
 ## Package Structure
 
+All source under `app/src/main/kotlin/com/lumos/sudoku/` (feature-first, Clean Architecture):
+
 ```
 com.lumos.sudoku/
-├── data/
-│   ├── model/          SudokuCell, SudokuBoard*, Difficulty, GameState
-│   ├── generator/      SudokuGenerator (backtracking + uniqueness solver)
-│   └── repository/     SudokuRepository, ThemePreferencesRepository
-├── domain/usecase/     GeneratePuzzle, ValidateMove, GetHint, CheckCompletion
-├── ui/
-│   ├── theme/          Theme, Color, Type
-│   ├── navigation/     AppNavigation (routes: home, game/{difficulty}, result/...)
-│   └── screen/
-│       ├── home/       HomeScreen, HomeViewModel
-│       ├── game/       GameScreen, GameViewModel, components/
-│       │   components/ SudokuGrid, SudokuCell, NumberPad, GameControls
-│       └── result/     ResultScreen
-└── di/                 AppModule (empty — @Inject @Singleton suffices)
+├── core/
+│   ├── theme/          Color.kt, Type.kt, Theme.kt (SudokuTheme composable)
+│   ├── navigation/     Route.kt (route constants), AppNavigation.kt
+│   ├── model/          Difficulty.kt   ← shared across features
+│   └── datastore/      ThemePreferencesRepository.kt
+│
+├── feature/
+│   ├── home/presentation/
+│   │   ├── HomeUiState.kt              ← single StateFlow source
+│   │   ├── HomeViewModel.kt
+│   │   └── HomeScreen.kt
+│   │
+│   ├── game/
+│   │   ├── domain/
+│   │   │   ├── model/      SudokuCell, SudokuBoard, GameState
+│   │   │   ├── repository/ SudokuRepository.kt   ← interface
+│   │   │   └── usecase/    GeneratePuzzle, ValidateMove, GetHint, CheckCompletion
+│   │   ├── data/
+│   │   │   ├── generator/  SudokuGenerator.kt
+│   │   │   ├── repository/ SudokuRepositoryImpl.kt
+│   │   │   └── di/         GameDataModule.kt   ← @Binds interface → impl
+│   │   └── presentation/
+│   │       ├── GameUiState.kt
+│   │       ├── GameViewModel.kt
+│   │       ├── GameScreen.kt
+│   │       └── component/  SudokuGrid, SudokuCell, NumberPad, GameControls
+│   │
+│   └── result/presentation/
+│       └── ResultScreen.kt
+│
+├── di/                 AppModule.kt
+├── MainActivity.kt
+└── SudokuApplication.kt
 ```
 
-> `SudokuBoard.kt` exists but is unused — `SudokuRepository` returns `List<List<SudokuCell>>` directly.
+**Dependency rule:** `presentation → domain ← data`; domain imports only from `core`.
 
 ---
 
 ## Key Models
+
+> Packages reflect new feature-first structure (see above).
 
 ### SudokuCell
 ```kotlin

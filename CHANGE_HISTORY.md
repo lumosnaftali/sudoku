@@ -2,6 +2,49 @@
 
 ---
 
+## 2026-05-30 (Issue #6 GH — Architecture Migration)
+
+### Feature-First Architecture + src/main/kotlin Migration
+Issue: #6 (GitHub #6)
+Summary: Migrated from layer-first `src/main/java` structure to feature-first Clean Architecture
+under `src/main/kotlin`. SudokuRepository split into interface (domain) + impl (data) with
+`GameDataModule` binding. `GameUiState` extracted to own file. `HomeViewModel` now exposes single
+`StateFlow<HomeUiState>`. All screen composables use `collectAsStateWithLifecycle()`.
+`Route` object centralises all navigation route strings.
+
+Files Created (32 new under `src/main/kotlin/`):
+  core/theme/{Color,Type,Theme}.kt — moved + package updated
+  core/navigation/{Route,AppNavigation}.kt — Route is new; AppNavigation moved
+  core/model/Difficulty.kt — moved from data/model
+  core/datastore/ThemePreferencesRepository.kt — moved from data/repository
+  feature/game/domain/model/{SudokuCell,SudokuBoard,GameState}.kt — moved from data/model
+  feature/game/domain/repository/SudokuRepository.kt — NEW interface
+  feature/game/domain/usecase/*.kt — moved from domain/usecase
+  feature/game/data/generator/SudokuGenerator.kt — moved
+  feature/game/data/repository/SudokuRepositoryImpl.kt — renamed from SudokuRepository, implements interface
+  feature/game/data/di/GameDataModule.kt — NEW @Binds module
+  feature/game/presentation/GameUiState.kt — extracted from GameViewModel
+  feature/game/presentation/{GameViewModel,GameScreen}.kt — moved
+  feature/game/presentation/component/*.kt — moved from ui/screen/game/components (renamed dir)
+  feature/home/presentation/{HomeUiState,HomeViewModel,HomeScreen}.kt — HomeUiState is new
+  feature/result/presentation/ResultScreen.kt — moved
+  {SudokuApplication,MainActivity}.kt, di/AppModule.kt — moved to src/main/kotlin root
+
+Files Deleted:
+  Entire app/src/main/java/ tree (27 files)
+
+Files Modified:
+  gradle/libs.versions.toml — added androidx-lifecycle-runtime-compose
+  app/build.gradle.kts — added lifecycle-runtime-compose dependency
+
+Decisions Made:
+  Single Gradle module kept — multi-module adds build complexity without proportional benefit for this app size
+  ResultScreen in feature/result/presentation — consistent with feature-first even without domain/data layers
+  HomeViewModel: two StateFlows → one combine() → single StateFlow<HomeUiState>
+  SudokuRepository: concrete class → interface in domain + impl in data + @Binds in GameDataModule
+
+---
+
 ## 2026-05-30 (AGENTS.md Compaction)
 
 ### Compacted from AGENTS.md
