@@ -4,11 +4,8 @@ import com.lumos.sudoku.core.model.Difficulty
 import com.lumos.sudoku.feature.game.data.generator.SudokuGenerator
 import com.lumos.sudoku.feature.game.domain.model.SudokuCell
 import com.lumos.sudoku.feature.game.domain.repository.SudokuRepository
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class SudokuRepositoryImpl @Inject constructor(
+class SudokuRepositoryImpl(
     private val generator: SudokuGenerator
 ) : SudokuRepository {
 
@@ -19,14 +16,10 @@ class SudokuRepositoryImpl @Inject constructor(
                 val initVal = puzzle.board[r][c]
                 val solVal = puzzle.solution[r][c]
                 SudokuCell(
-                    row = r,
-                    col = c,
-                    value = initVal,
-                    solution = solVal,
+                    row = r, col = c,
+                    value = initVal, solution = solVal,
                     isGiven = initVal != 0,
-                    isWrong = false,
-                    isHinted = false,
-                    notes = emptySet()
+                    isWrong = false, isHinted = false, notes = emptySet()
                 )
             }
         }

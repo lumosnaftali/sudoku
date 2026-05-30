@@ -3,7 +3,6 @@ package com.lumos.sudoku.core.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,6 +14,7 @@ import com.lumos.sudoku.feature.game.presentation.GameViewModel
 import com.lumos.sudoku.feature.home.presentation.HomeScreen
 import com.lumos.sudoku.feature.home.presentation.HomeViewModel
 import com.lumos.sudoku.feature.result.presentation.ResultScreen
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
@@ -23,7 +23,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = Route.HOME, modifier = modifier) {
 
         composable(Route.HOME) {
-            val viewModel: HomeViewModel = hiltViewModel()
+            val viewModel: HomeViewModel = koinViewModel()
             HomeScreen(
                 viewModel = viewModel,
                 onStartGame = { difficulty ->
@@ -38,7 +38,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         ) { backStackEntry ->
             val difficultyName = backStackEntry.arguments?.getString("difficulty") ?: Difficulty.EASY.name
             val difficulty = Difficulty.valueOf(difficultyName)
-            val viewModel: GameViewModel = hiltViewModel()
+            val viewModel: GameViewModel = koinViewModel()
 
             LaunchedEffect(difficulty) { viewModel.initGame(difficulty) }
 

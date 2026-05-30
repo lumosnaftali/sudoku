@@ -1,9 +1,8 @@
 package com.lumos.sudoku.feature.game.data.generator
 
 import com.lumos.sudoku.core.model.Difficulty
-import javax.inject.Inject
 
-class SudokuGenerator @Inject constructor() {
+class SudokuGenerator {
 
     data class GeneratedPuzzle(
         val board: Array<IntArray>,
@@ -45,8 +44,7 @@ class SudokuGenerator @Inject constructor() {
     private fun isValid(board: Array<IntArray>, row: Int, col: Int, num: Int): Boolean {
         for (c in 0..8) if (board[row][c] == num) return false
         for (r in 0..8) if (board[r][col] == num) return false
-        val boxRowStart = (row / 3) * 3
-        val boxColStart = (col / 3) * 3
+        val boxRowStart = (row / 3) * 3; val boxColStart = (col / 3) * 3
         for (r in boxRowStart until boxRowStart + 3)
             for (c in boxColStart until boxColStart + 3)
                 if (board[r][c] == num) return false
@@ -58,26 +56,15 @@ class SudokuGenerator @Inject constructor() {
         val tempBoard = copyBoard(board)
 
         fun solveRecursive(r: Int, c: Int): Boolean {
-            if (r == 9) {
-                solutionsCount++
-                return solutionsCount >= limit
-            }
+            if (r == 9) { solutionsCount++; return solutionsCount >= limit }
             if (solutionsCount >= limit) return true
-
-            val nextRow: Int
-            val nextCol: Int
-            if (c + 1 == 9) { nextRow = r + 1; nextCol = 0 }
-            else { nextRow = r; nextCol = c + 1 }
-
+            val nextRow: Int; val nextCol: Int
+            if (c + 1 == 9) { nextRow = r + 1; nextCol = 0 } else { nextRow = r; nextCol = c + 1 }
             if (tempBoard[r][c] != 0) return solveRecursive(nextRow, nextCol)
-
             for (num in 1..9) {
                 if (isValid(tempBoard, r, c, num)) {
                     tempBoard[r][c] = num
-                    if (solveRecursive(nextRow, nextCol)) {
-                        tempBoard[r][c] = 0
-                        return true
-                    }
+                    if (solveRecursive(nextRow, nextCol)) { tempBoard[r][c] = 0; return true }
                     tempBoard[r][c] = 0
                 }
             }
@@ -94,13 +81,11 @@ class SudokuGenerator @Inject constructor() {
         val cells = (0..80).shuffled().toMutableList()
         for (cellIndex in cells) {
             if (currentRevealed <= targetRevealed) break
-            val row = cellIndex / 9
-            val col = cellIndex % 9
+            val row = cellIndex / 9; val col = cellIndex % 9
             val originalVal = board[row][col]
             if (originalVal != 0) {
                 board[row][col] = 0
-                if (countSolutions(board) == 1) currentRevealed--
-                else board[row][col] = originalVal
+                if (countSolutions(board) == 1) currentRevealed-- else board[row][col] = originalVal
             }
         }
     }

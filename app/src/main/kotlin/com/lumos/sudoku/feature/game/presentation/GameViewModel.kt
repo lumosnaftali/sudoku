@@ -10,7 +10,6 @@ import com.lumos.sudoku.feature.game.domain.usecase.CheckCompletionUseCase
 import com.lumos.sudoku.feature.game.domain.usecase.GeneratePuzzleUseCase
 import com.lumos.sudoku.feature.game.domain.usecase.GetHintUseCase
 import com.lumos.sudoku.feature.game.domain.usecase.ValidateMoveUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,10 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.Stack
-import javax.inject.Inject
 
-@HiltViewModel
-class GameViewModel @Inject constructor(
+class GameViewModel(
     private val generatePuzzleUseCase: GeneratePuzzleUseCase,
     private val validateMoveUseCase: ValidateMoveUseCase,
     private val getHintUseCase: GetHintUseCase,
@@ -86,8 +83,7 @@ class GameViewModel @Inject constructor(
     fun enterNumber(num: Int) {
         val state = _uiState.value
         if (state.gameState != GameState.Playing) return
-        val r = state.selectedRow
-        val c = state.selectedCol
+        val r = state.selectedRow; val c = state.selectedCol
         if (r !in 0..8 || c !in 0..8) return
         val cell = state.board[r][c]
         if (cell.isGiven || cell.isHinted) return
